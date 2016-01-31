@@ -77,7 +77,7 @@ public class bridge_protocol {
                     webview.loadUrl("javascript:" + s + ";");
                 }
             });
-            System.out.println("javscript done..");
+
         }
     	
         //  Show Toast Message
