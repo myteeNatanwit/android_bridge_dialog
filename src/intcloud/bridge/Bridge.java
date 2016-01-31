@@ -15,6 +15,7 @@ import android.app.PendingIntent;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.JavascriptInterface;
@@ -24,40 +25,40 @@ import android.widget.Toast;
 
    
 public class Bridge extends Activity {
-	WebView webView;
+	WebView webview;
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        webView = (WebView) findViewById(R.id.webView1);
-        webView.getSettings().setJavaScriptEnabled(true);
-        webView.getSettings().setDomStorageEnabled(true);
-        webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(false);
-        webView.getSettings().setSupportMultipleWindows(false);
-        webView.getSettings().setSupportZoom(false);
-        webView.setVerticalScrollBarEnabled(false);
-        webView.setHorizontalScrollBarEnabled(false);
+        webview = (WebView) findViewById(R.id.webView1);
+        webview.getSettings().setJavaScriptEnabled(true);
+        webview.getSettings().setDomStorageEnabled(true);
+        webview.getSettings().setJavaScriptCanOpenWindowsAutomatically(false);
+        webview.getSettings().setSupportMultipleWindows(false);
+        webview.getSettings().setSupportZoom(false);
+        webview.setVerticalScrollBarEnabled(false);
+        webview.setHorizontalScrollBarEnabled(false);
         
         //Inject WebAppInterface methods into Web page by having Interface 'bridge' 
-        webView.addJavascriptInterface(new bridge_protocol(this), "bridge");
-        webView.setWebChromeClient(new WebChromeClient());
-        webView.loadUrl("file:///android_asset/www/index.html");
+        webview.addJavascriptInterface(new bridge_protocol(this), "bridge");
+        webview.setWebChromeClient(new WebChromeClient());
+        webview.loadUrl("file:///android_asset/www/index.html");
                 
     }
-    
+
     public void button1_onclick(View view) {
-    	js_call(webView, "Javascript_function('this is from Java!')");
+    	js_call(webview, "Javascript_function('text', 'this is from Java!')");
 
     }
 
-    public void js_call(WebView webView, String jsString) {
+    public void js_call(WebView webview, String jsString) {
 		final String webUrl = "javascript:" +  jsString;
 		 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-	        webView.evaluateJavascript(jsString, null);
+	        webview.evaluateJavascript(jsString, null);
 	        System.out.println(jsString);
 	    } else {
-	        webView.loadUrl(webUrl);
+	        webview.loadUrl(webUrl);
 	        System.out.println("old way");
 	    }
 	}
@@ -70,9 +71,17 @@ public class bridge_protocol {
             aContext = c;
         }
 
+        private void sendjs(final String s) {
+            webview.post(new Runnable() {
+                public void run() {
+                    webview.loadUrl("javascript:" + s + ";");
+                }
+            });
+            System.out.println("javscript done..");
+        }
+    	
         //  Show Toast Message
         // @param toast as String
-         
         @JavascriptInterface
         public void showToast(String toast) {
             Toast.makeText(aContext, toast, Toast.LENGTH_SHORT).show();
@@ -93,8 +102,13 @@ public class bridge_protocol {
                      new DialogInterface.OnClickListener() {
                          public void onClick(DialogInterface dialog, int which) {
   // do something
+                      	  
                         	 dialog.cancel();
+                        	 sendjs("Javascript_function('dialog', 'OK')");
+  
                          }
+
+						
                      });
      
             // Showing Alert Message
